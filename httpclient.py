@@ -33,11 +33,27 @@ class HTTPResponse(object):
         self.body = body
 
 class HTTPClient(object):
-    #def get_host_port(self,url):
+    #uses regex to find the host name and port number
+    #https://regex101.com/r/tH6gT0/1
+    def get_host_port(self,url):
+        #from claesv at  http://stackoverflow.com/questions/9530950/parsing-hostname-and-port-from-string-or-url Sept. 26, 2016
+        p = '(?:http.*://)?(?P<host>[^:/ ]+).?(?P<port>[0-9]*).*'
 
+        m = re.search(p,url)
+        host = m.group('host') 
+        port = m.group('port') 
+        if len(port) == 0:
+            port = 80
+        else:
+            port = int(port)
+        
+        return host, port
+
+        
     def connect(self, host, port):
-        # use sockets!
-        return None
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.connect((host, port))
+        return s
 
     def get_code(self, data):
         return None
@@ -63,6 +79,9 @@ class HTTPClient(object):
     def GET(self, url, args=None):
         code = 500
         body = ""
+        host, port = self.get_host_port(url)
+        print host, port
+        self.connect(host, port)
         return HTTPResponse(code, body)
 
     def POST(self, url, args=None):
@@ -75,6 +94,7 @@ class HTTPClient(object):
             return self.POST( url, args )
         else:
             return self.GET( url, args )
+        
     
 if __name__ == "__main__":
     client = HTTPClient()
