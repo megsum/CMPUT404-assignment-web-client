@@ -23,6 +23,7 @@ import socket
 import re
 # you may use urllib to encode data appropriately
 import urllib
+from urlparse import urlparse
 
 def help():
     print "httpclient.py [GET/POST] [URL]\n"
@@ -48,21 +49,25 @@ class HTTPClient(object):
             port = int(port)
         
         return host, port
-
-        
+ 
     def connect(self, host, port):
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.connect((host, port))
         return s
-
+    
     def get_code(self, data):
-        return None
+        p = '(HTTP\/1.[0-1] )(?P<code>\d\d\d)'
+        m = re.search(p, data)
+        code = m.group('code')
+        return int(code)
 
     def get_headers(self,data):
         return None
 
     def get_body(self, data):
-        return None
+        #John Zwinck at http://stackoverflow.com/questions/599953/how-to-remove-the-left-part-of-a-string Sept. 27. 2016
+        headers, body = data.split('\r\n\r\n', 1)
+        return headers, body
 
     # read everything from the socket
     def recvall(self, sock):
@@ -80,13 +85,23 @@ class HTTPClient(object):
         code = 500
         body = ""
         host, port = self.get_host_port(url)
-        print host, port
-        self.connect(host, port)
+        sock = self.connect(host, port)
+        sock.sendall("GET / HTTP/1.1\r\n")
+        sock.sendall("Host:" + host + "\r\n")
+        sock.sendall("\r\n")
+        data = self.recvall(sock)
+        code = self.get_code(data)
+        headers, body = self.get_body(data)
         return HTTPResponse(code, body)
 
     def POST(self, url, args=None):
         code = 500
         body = ""
+        host, port = self.get_host_port(url)
+        sock = self.connect(host, port)
+        sock.sendall("GET / HTTP/1.1\r\n")
+        sock.sendall("Host:" + host + "\r\n")
+        sock.sendall("\r\n")
         return HTTPResponse(code, body)
 
     def command(self, url, command="GET", args=None):
