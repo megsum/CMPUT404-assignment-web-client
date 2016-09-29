@@ -35,7 +35,6 @@ class HTTPResponse(object):
 
 class HTTPClient(object):
     #uses regex to find the host name and port number
-    #https://regex101.com/r/tH6gT0/1
     def get_host_port(self,url):
         #from claesv at  http://stackoverflow.com/questions/9530950/parsing-hostname-and-port-from-string-or-url Sept. 26, 2016
         p = '(?:http.*://)?(?P<host>[^:/ ]+).?(?P<port>[0-9]*).*'
@@ -50,11 +49,13 @@ class HTTPClient(object):
         
         return host, port
  
+    #connects to socket
     def connect(self, host, port):
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.connect((host, port))
         return s
     
+    #gets status code using regexes
     def get_code(self, data):
         p = '(HTTP\/1.[0-1] )(?P<code>\d\d\d)'
         m = re.search(p, data)
@@ -62,8 +63,9 @@ class HTTPClient(object):
         return int(code)
 
     def get_headers(self,data):
-        return None
+        return len(str(data))
 
+        #get body and headers by spliting data
     def get_body(self, data):
         #John Zwinck at http://stackoverflow.com/questions/599953/how-to-remove-the-left-part-of-a-string Sept. 27. 2016
         headers, body = data.split('\r\n\r\n', 1)
@@ -86,12 +88,20 @@ class HTTPClient(object):
         body = ""
         host, port = self.get_host_port(url)
         sock = self.connect(host, port)
-        sock.sendall("GET / HTTP/1.1\r\n")
+        #parse url to get the parts of the url
+        parse_result = urlparse(url)
+        #if query is empty
+        if parse_result[4] == None:
+            sock.sendall("GET " + parse_result[2] + "HTTP/1.1\r\n")
+        #if there is a query
+        else:
+            sock.sendall("GET "+ parse_result[2] + "?"  + parse_result[4] + " HTTP/1.1\r\n")
         sock.sendall("Host:" + host + "\r\n")
         sock.sendall("\r\n")
         data = self.recvall(sock)
         code = self.get_code(data)
         headers, body = self.get_body(data)
+        sock.close()
         return HTTPResponse(code, body)
 
     def POST(self, url, args=None):
@@ -99,9 +109,22 @@ class HTTPClient(object):
         body = ""
         host, port = self.get_host_port(url)
         sock = self.connect(host, port)
-        sock.sendall("GET / HTTP/1.1\r\n")
+        sock.sendall("POST / HTTP/1.1\r\n")
         sock.sendall("Host:" + host + "\r\n")
-        sock.sendall("\r\n")
+        sock.sendall("Content-Type: application/x-www-form-encoded, text/html\r\n")
+        #if there is nothing to be POSTed
+        if args == None:
+            sock.sendall("Content-Length: 0\r\n\r\n")
+        #encode the POST request and send its length
+        else:
+            args_encoded = urllib.urlencode(args, True)
+            length = self.get_headers(args_encoded)
+            sock.sendall("Content-Length: " + str(length) + "\r\n\r\n")
+            sock.sendall(str(args_encoded))
+        data = self.recvall(sock)
+        code = self.get_code(data)
+        headers, body = self.get_body(data)
+        sock.close()
         return HTTPResponse(code, body)
 
     def command(self, url, command="GET", args=None):
@@ -120,4 +143,4 @@ if __name__ == "__main__":
     elif (len(sys.argv) == 3):
         print client.command( sys.argv[2], sys.argv[1] )
     else:
-        print client.command( sys.argv[1] )   
+        print client.command( sys.argv[1] )  
