@@ -102,6 +102,7 @@ class HTTPClient(object):
         data = self.recvall(sock)
         code = self.get_code(data)
         headers, body = self.get_body(data)
+        sys.stdout.write(data)
         sock.close()
         return HTTPResponse(code, body)
 
@@ -125,6 +126,7 @@ class HTTPClient(object):
         data = self.recvall(sock)
         code = self.get_code(data)
         headers, body = self.get_body(data)
+        sys.stdout.write(data)
         sock.close()
         return HTTPResponse(code, body)
 
