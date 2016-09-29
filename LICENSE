@@ -1,3 +1,27 @@
+This program is a partially HTTP 1.1 compliant webclient.
+  
+  Copyright 2016 Megan Sumner
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+   
+Resources:
+claesv at  http://stackoverflow.com/questions/9530950/parsing-hostname-and-port-from-string-or-url Sept. 26, 2016
+John Zwinck at http://stackoverflow.com/questions/599953/how-to-remove-the-left-part-of-a-string Sept. 27, 2016
+Code forked from: Abram Hindle abramhindle/CMPUT404-assignment-web-client Sept. 25, 2016
+
+Collaborated with:
+Leah Olexson
+
 Apache License
                            Version 2.0, January 2004
                         http://www.apache.org/licenses/
